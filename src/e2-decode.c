@@ -52,10 +52,11 @@ while(!feof(stdin)) {
 		fscanf (stdin, "%d %d", &t, &v);
 		
 		if ( v>=13 && v <= 17) {
-			freq=1;
-		} else if ( v >= 9 && v <= 12) {
 			freq=0;
+		} else if ( v >= 9 && v <= 12) {
+			freq=1;
 		} else {
+			fprintf (stdout,"(%d)",v);
 			//freq=-1;
 			//fprintf (stdout, "bit_count=%d v=%d t=%d\n", bit_count,v,t);
 			//break;
@@ -80,7 +81,7 @@ while(!feof(stdin)) {
 			lc=0;
 			prevfreq=freq;
 
-			if (bit_count > 8*16) {
+			if (bit_count > 8*18) {
 				fprintf (stdout,"te=%d dur=%d\n", t, t-tstart);
 				break;
 			}
