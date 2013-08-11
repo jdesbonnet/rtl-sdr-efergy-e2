@@ -1,7 +1,7 @@
 #include <stdio.h>
 int main (int argc, char**argv) {
 	int i=0;
-	int v=0;
+	int v=0,pv=0;
 	int t=0;
 	int bit_count = 0;
 	int shift_reg = 0;
@@ -12,6 +12,8 @@ int main (int argc, char**argv) {
 	int prevfreq=0;
 	int nbit=0;
 
+	int tstart;
+
 while(!feof(stdin)) {
 
 	// Look for frame leader
@@ -19,7 +21,8 @@ while(!feof(stdin)) {
 	while ( !feof(stdin) ) {
 		fscanf (stdin, "%d %d", &t, &v);
 
-		if (v>=6 && v <=8) {
+		//if (v>=6 && v <=8) {
+		if (v == pv) {
 			lc++;
 		} else {
 			if (lc > 3000) {
@@ -27,6 +30,7 @@ while(!feof(stdin)) {
 			} else {
 				lc = 0;
 			}
+			pv = v;
 		}
 
 		i++;
@@ -36,10 +40,11 @@ while(!feof(stdin)) {
 		}
 	}
 
-	fprintf (stdout,"\nSTART OF FRAME: lc=%d t=%d",lc,t);
+	fprintf (stdout,"\nSTART OF FRAME: lc=%d ts=%d",lc,t);
 	bit_count = 0;
 	shift_reg = 0;
 	lc=0;
+	tstart=t;
 	
 
 	while ( !feof(stdin) ) {
@@ -76,6 +81,7 @@ while(!feof(stdin)) {
 			prevfreq=freq;
 
 			if (bit_count > 8*16) {
+				fprintf (stdout,"te=%d dur=%d\n", t, t-tstart);
 				break;
 			}
 		}
