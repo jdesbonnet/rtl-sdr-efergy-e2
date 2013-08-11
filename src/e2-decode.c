@@ -8,6 +8,10 @@ int main (int argc, char**argv) {
 	int symbol = 0;
 	int lc=0;
 
+	int freq=0;
+	int prevfreq=0;
+	int nbit=0;
+
 while(!feof(stdin)) {
 
 	// Look for frame leader
@@ -32,37 +36,52 @@ while(!feof(stdin)) {
 		}
 	}
 
-	fprintf (stdout,"\nSTART OF FRAME: lc=%d ",lc);
+	fprintf (stdout,"\nSTART OF FRAME: lc=%d t=%d",lc,t);
 	bit_count = 0;
 	shift_reg = 0;
-
+	lc=0;
+	
 
 	while ( !feof(stdin) ) {
+
 		fscanf (stdin, "%d %d", &t, &v);
-		//fprintf (stdout, "v=%d ",v);
+		
 		if ( v>=13 && v <= 17) {
-			symbol=1;
+			freq=1;
 		} else if ( v >= 9 && v <= 12) {
-			symbol=0;
+			freq=0;
 		} else {
-			symbol=-1;
+			//freq=-1;
+			//fprintf (stdout, "bit_count=%d v=%d t=%d\n", bit_count,v,t);
+			//break;
+			// ignore
 		}
 
-		if (symbol != -1) {
-			shift_reg <<= 1;
- 			shift_reg |= symbol;
-			bit_count++;
-			if (bit_count % 8 == 0) {
-				fprintf (stdout,"%x ",shift_reg & 0xff);
-				if (bit_count > 1000*8) {
-					fprintf (stdout," END OF FRAME.\n");
-					break;
-				}
-			}
+		if (freq == prevfreq) {
+			lc++;
 		} else {
-			fprintf (stdout,"*%d* ",v);
-		} 
+			nbit = (lc+45)/90;
+			//fprintf (stdout, "%d (%d %d)\n", prevfreq, lc, nbit);
+			fflush (stdout);
+			while (nbit !=0) {
+				shift_reg <<= 1;
+				shift_reg |= prevfreq;
+				bit_count++;
+				if (bit_count%8==0) {
+					fprintf (stdout,"[%x] ",shift_reg & 0xff);
+				}
+				nbit--;
+			}
+			lc=0;
+			prevfreq=freq;
+
+			if (bit_count > 8*16) {
+				break;
+			}
+		}
+
 		
+			
 	}
 
 	}
