@@ -10,6 +10,7 @@ int main (int argc, char**argv) {
 
 	int freq=0;
 	int prevfreq=0;
+	int prevfreqt=0;
 	int nbit=0;
 
 	int tstart;
@@ -40,7 +41,7 @@ while(!feof(stdin)) {
 		}
 	}
 
-	fprintf (stdout,"\nSTART OF FRAME: lc=%d ts=%d",lc,t);
+	fprintf (stdout,"\nSTART OF FRAME: lc=%d ts=%d ",lc,t);
 	bit_count = 0;
 	shift_reg = 0;
 	lc=0;
@@ -56,7 +57,7 @@ while(!feof(stdin)) {
 		} else if ( v >= 9 && v <= 12) {
 			freq=1;
 		} else {
-			fprintf (stdout,"(%d)",v);
+			//fprintf (stdout,"(%d)",v);
 			//freq=-1;
 			//fprintf (stdout, "bit_count=%d v=%d t=%d\n", bit_count,v,t);
 			//break;
@@ -67,22 +68,23 @@ while(!feof(stdin)) {
 			lc++;
 		} else {
 			nbit = (lc+45)/90;
-			//fprintf (stdout, "%d (%d %d)\n", prevfreq, lc, nbit);
+			fprintf (stdout, "%d (%d %d %d)\n", prevfreq, lc, nbit, t-prevfreqt);
 			fflush (stdout);
 			while (nbit !=0) {
 				shift_reg <<= 1;
 				shift_reg |= prevfreq;
 				bit_count++;
 				if (bit_count%8==0) {
-					fprintf (stdout,"[%x] ",shift_reg & 0xff);
+					fprintf (stdout,"[%02x] ",shift_reg & 0xff);
 				}
 				nbit--;
 			}
 			lc=0;
 			prevfreq=freq;
+			prevfreqt=t;
 
-			if (bit_count > 8*18) {
-				fprintf (stdout,"te=%d dur=%d\n", t, t-tstart);
+			if (bit_count >= 8*12) {
+				fprintf (stdout,"te=%d dur=%d bc=%d\n", t, t-tstart,bit_count);
 				break;
 			}
 		}
