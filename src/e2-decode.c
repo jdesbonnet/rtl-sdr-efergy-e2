@@ -1,4 +1,10 @@
 #include <stdio.h>
+#include <stdint.h>
+
+/**
+ * Efergy Elite decoder.
+ * (NB: not Efergy E2)
+ */
 int main (int argc, char**argv) {
 	int i=0;
 	int v=0,pv=0;
@@ -12,12 +18,21 @@ int main (int argc, char**argv) {
 	int prevfreq=0;
 	int prevfreqt=0;
 	int nbit=0;
+	float nbitf=0;
 
 	int tstart;
 
+	uint8_t frame[16];
+	int byte_count=0;
+
+	int milliamps;
+
+// Loop forever
 while(!feof(stdin)) {
 
-	// Look for frame leader
+	//
+	// Look for start of frame.
+	//
 	lc = 0;
 	while ( !feof(stdin) ) {
 		fscanf (stdin, "%d %d", &t, &v);
@@ -42,11 +57,18 @@ while(!feof(stdin)) {
 	}
 
 	fprintf (stdout,"\nSTART OF FRAME: lc=%d ts=%d ",lc,t);
+
+	
+	//
+	// Read frame
+	//
+
 	bit_count = 0;
+	byte_count = 0;
 	shift_reg = 0;
 	lc=0;
 	tstart=t;
-	
+
 
 	while ( !feof(stdin) ) {
 
@@ -68,7 +90,8 @@ while(!feof(stdin)) {
 			lc++;
 		} else {
 			nbit = (lc+45)/90;
-			fprintf (stdout, "%d (%d %d %d)\n", prevfreq, lc, nbit, t-prevfreqt);
+			nbitf = (float)lc/90.0;
+			//fprintf (stdout, "%d (%d %d %d %f)\n", prevfreq, lc, nbit, t-prevfreqt, nbitf);
 			fflush (stdout);
 			while (nbit !=0) {
 				shift_reg <<= 1;
@@ -76,6 +99,7 @@ while(!feof(stdin)) {
 				bit_count++;
 				if (bit_count%8==0) {
 					fprintf (stdout,"[%02x] ",shift_reg & 0xff);
+					frame[byte_count++] = shift_reg & 0xff;
 				}
 				nbit--;
 			}
@@ -88,12 +112,14 @@ while(!feof(stdin)) {
 				break;
 			}
 		}
-
-		
-			
+	
 	}
 
-	}
+	// End of Frame
+	milliamps = (frame[8] | (frame[7]&0x0f)<<8)*10;
+	fprintf (stdout, "mA=%d\n", milliamps);
+
+	} // loop forever
 
 }
 
