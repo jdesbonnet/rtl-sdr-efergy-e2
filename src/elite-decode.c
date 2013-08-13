@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
-
+#include <sys/time.h>
 /**
  * Efergy Elite decoder.
  * (NB: not Efergy E2)
@@ -53,6 +53,8 @@ int main (int argc, char**argv) {
 	int tstart;
 
 	uint8_t frame[16];
+	// Start of frame also available as 32bit integer for quick good frame test
+	uint32_t *sof = (int *)(&frame);
 	int byte_count=0;
 
 	int milliamps;
@@ -81,12 +83,12 @@ int main (int argc, char**argv) {
 			// display activity		
 			i++;
 			if (i % 10000 == 0) {
-				fprintf (stdout,"*");
-				fflush (stdout);
+				fprintf (stderr,"*");
+				fflush (stderr);
 			}
 		}
 
-		fprintf (stdout,"\nSTART OF FRAME: lc=%d ts=%d ",lc,t);
+		fprintf (stderr,"\nSTART OF FRAME: lc=%d ts=%d ",lc,t);
 
 	
 		//
@@ -123,7 +125,7 @@ int main (int argc, char**argv) {
 					shift_reg |= prevfreq;
 					bit_count++;
 					if (bit_count%8==0) {
-						fprintf (stdout,"[%02x] ",shift_reg & 0xff);
+						fprintf (stderr,"[%02x] ",shift_reg & 0xff);
 						frame[byte_count++] = shift_reg & 0xff;
 					}
 					nbit--;
@@ -133,16 +135,26 @@ int main (int argc, char**argv) {
 				prevfreqt=t;
 
 				if (bit_count >= 8*12) {
-					fprintf (stdout,"te=%d dur=%d bc=%d\n", t, t-tstart,bit_count);
+					fprintf (stderr,"te=%d dur=%d bc=%d\n", t, t-tstart,bit_count);
 					break;
 				}
 			}
 	
 		}
 
-		// End of Frame
-		milliamps = (frame[8] | (frame[7]&0x0f)<<8)*10;
-		fprintf (stdout, "mA=%d\n", milliamps);
+		
+		fprintf (stderr,"sof=%x ", *sof);
+
+		if (*sof == 0x2dababab) {
+			// End of Frame
+			milliamps = (frame[8] | (frame[7]&0x0f)<<8)*10;
+			fprintf (stderr, "mA=%d\n", milliamps);
+
+			fprintf (stdout, "%d %d\n", time(NULL), milliamps);
+			fflush (stdout);
+		} else {
+			fprintf (stderr, "bad frame\n");
+		}
 
 	} // loop forever
 
