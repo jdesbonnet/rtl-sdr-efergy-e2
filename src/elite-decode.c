@@ -16,6 +16,10 @@ int f = 0;
 int ntpt = 0;
 int py=0;
 
+/**
+ * Read next sample from rtl_fm (signed 16bit integer, little endian).
+ * Update global t, f (length, in samples, of positive half cycle)
+ */
 int get_next_sample () {
 
 	int16_t y;
@@ -65,7 +69,6 @@ int main (int argc, char**argv) {
 			v = get_next_sample();
 			if (v == pv) {
 				lc++;
-
 			} else {
 				if (lc > (SAMPLE_RATE/16) ) {
 					break;
@@ -114,7 +117,7 @@ int main (int argc, char**argv) {
 				nbit = (lc+(45*SAMPLE_RATE)/48000)/((90*SAMPLE_RATE)/48000);
 				nbitf = (float)lc/90.0;
 				//fprintf (stdout, "%d (%d %d %d %f)\n", prevfreq, lc, nbit, t-prevfreqt, nbitf);
-				fflush (stdout);
+				//fflush (stdout);
 				while (nbit !=0) {
 					shift_reg <<= 1;
 					shift_reg |= prevfreq;
